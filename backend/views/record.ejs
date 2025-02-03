@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <title>Emergency Info - <%= data.name %></title>
+  </head>
+  <body>
+    <div class="container">
+      <h1><%= data.name %></h1>
+
+      <div class="section emergency-contact">
+        <h2>Emergency Contact</h2>
+        <p class="contact-info">
+          <%= data.emergencyContact.name %> -
+          <a href="tel:<%= data.emergencyContact.number %>">
+            <%= data.emergencyContact.number %>
+          </a>
+        </p>
+      </div>
+
+      <div class="section medical-info">
+        <h2>Medical Information</h2>
+        <p><strong>Blood Type:</strong> <%= data.bloodType %></p>
+        <p>
+          <strong>Allergies:</strong>
+          <span
+            class="<%= data.allergies ? 'allergy-warning' : 'text-muted' %>"
+          >
+            <%= data.allergies || 'None reported' %>
+          </span>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
