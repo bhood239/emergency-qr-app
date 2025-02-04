@@ -5,13 +5,19 @@ const { pool } = require("./config/db");
 const CryptoJS = require("crypto-js");
 const app = express();
 const apiRouter = require("./routes/api");
+const cookieParser = require("cookie-parser");
+const authRoutes = require("./routes/auth");
 
 app.use(cors());
 app.use(express.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
+//middleware
+app.use(cookieParser());
+
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api", apiRouter);
 
 app.get("/record/:id", async (req, res) => {
