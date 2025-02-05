@@ -17,6 +17,22 @@ const validationSchema = yup.object({
 
 export default function QRForm({ navigation, route }) {
   const [existingData, setExistingData] = useState(null);
+  const [initialValues, setInitialValues] = useState({
+    name: "",
+    bloodType: "",
+    allergies: "",
+    emergencyContact: { name: "", number: "" },
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [recordId, setRecordId] = useState(null);
+
+  useEffect(() => {
+    if (route.params?.editData) {
+      setInitialValues(route.params.editData);
+      setRecordId(route.params.editData.id);
+      setIsEditing(true);
+    }
+  }, [route.params]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,32 +55,35 @@ export default function QRForm({ navigation, route }) {
   const handleSubmit = async (values) => {
     try {
       const token = await AsyncStorage.getItem("token");
+      const url = isEditing
+        ? `http://localhost:3001/api/records/${recordId}`
+        : "http://localhost:3001/api/records";
 
-      const response = await axios.post(
-        "http://localhost:3001/api/records",
-        values,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await (isEditing
+        ? axios.patch(url, values, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        : axios.post(url, values, {
+            headers: { Authorization: `Bearer ${token}` },
+          }));
+
+      if (response.status !== 200) {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
+
       navigation.navigate("QRDisplay", { id: response.data.id, ...values });
     } catch (err) {
-      alert("Error saving data" + (err.response?.data?.error || err.message));
+      console.error("Error updating/saving record:", err);
+      alert(isEditing ? "Failed to update" : "Failed to save");
     }
   };
 
   return (
     <View style={styles.container}>
       <Formik
-        initialValues={{
-          name: "",
-          bloodType: "",
-          allergies: "",
-          emergencyContact: { name: "", number: "" },
-        }}
+        initialValues={initialValues}
         onSubmit={handleSubmit}
+        enableReinitialize
         validationSchema={validationSchema}
       >
         {({

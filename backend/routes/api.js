@@ -10,4 +10,4 @@ const {
 router.post("/records", auth, createRecord);
 router.get("/records", auth, getRecord);
 router.patch("/records/:id", auth, updateRecord);
-router.module.exports = router;
+module.exports = router;

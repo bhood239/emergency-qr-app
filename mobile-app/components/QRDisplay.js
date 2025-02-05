@@ -5,7 +5,7 @@ export default function QRDisplay({ route, navigation }) {
   const { id, ...qrData } = route.params || {};
 
   const onEditInformation = () => {
-    navigation.navigate("Profile");
+    navigation.navigate("Profile", { editData: { id, ...qrData } });
   };
 
   if (!id) {

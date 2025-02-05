@@ -31,7 +31,6 @@ exports.createRecord = async (req, res) => {
 
 exports.getRecord = async (req, res) => {
   try {
-    console.log("User ID:", req.user.id); // Debugging
     const result = await pool.query(
       `SELECT user_data.* FROM user_data JOIN users ON users.id = user_data.user_id WHERE user_data.user_id = $1 LIMIT 1`,
       [req.user.id]
@@ -65,12 +64,11 @@ exports.updateRecord = async (req, res) => {
       process.env.SECRET_KEY
     ).toString();
 
-    // Update record
     const result = await pool.query(
-      `UPDATE user_data 
-       SET encrypted_data = $1, updated_at = NOW() 
-       WHERE id = $2 AND user_id = $3 
-       RETURNING *`,
+      `UPDATE user_data
+        SET encrypted_data = $1
+        WHERE id = $2 AND user_id = $3
+        RETURNING *`,
       [encrypted, id, req.user.id]
     );
 
@@ -81,5 +79,6 @@ exports.updateRecord = async (req, res) => {
     res.json({ id: result.rows[0].id });
   } catch (err) {
     res.status(500).json({ error: "Failed to update record" });
+    console.log(err);
   }
 };
