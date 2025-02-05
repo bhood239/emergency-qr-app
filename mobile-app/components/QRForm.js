@@ -2,6 +2,7 @@ import { Formik } from "formik";
 import { View, TextInput, Button, StyleSheet, Text } from "react-native";
 import * as yup from "yup";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const validationSchema = yup.object({
   name: yup.string().required("Name is required"),
@@ -16,9 +17,16 @@ const validationSchema = yup.object({
 export default function QRForm({ setQrData, setShowQR }) {
   const handleSubmit = async (values) => {
     try {
+      const token = await AsyncStorage.getItem("token");
+
       const response = await axios.post(
         "http://localhost:3001/api/records",
-        values
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setQrData({ id: response.data.id, ...values });
       setShowQR(true);

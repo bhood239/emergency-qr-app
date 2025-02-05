@@ -2,47 +2,32 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { pool } = require("./config/db");
-const CryptoJS = require("crypto-js");
 const app = express();
-const apiRouter = require("./routes/api");
-const cookieParser = require("cookie-parser");
-const authRoutes = require("./routes/auth");
 
-app.use(cors());
+// Middleware
+app.use(
+  cors({
+    origin: ["http://localhost:8081", "exp://192.168.1.81:8081"], // Update with your Expo URL
+    credentials: true,
+  })
+);
 app.use(express.json());
-app.set("view engine", "ejs");
-app.use(express.static("public"));
-
-//middleware
-app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
+const apiRouter = require("./routes/api");
+const authRoutes = require("./routes/auth");
+
 app.use("/api/auth", authRoutes);
 app.use("/api", apiRouter);
 
-app.get("/record/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query("SELECT * FROM user_data WHERE id = $1", [
-      id,
-    ]);
-
-    if (!result.rows[0]) return res.status(404).send("Not found");
-
-    // Decrypt data
-    const bytes = CryptoJS.AES.decrypt(
-      result.rows[0].encrypted_data,
-      process.env.SECRET_KEY
-    );
-    const data = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-
-    res.render("record", { data });
-  } catch (err) {
-    console.error("Error:", err); // Add logging
-    res.status(500).send("Invalid record");
-  }
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
 });
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
