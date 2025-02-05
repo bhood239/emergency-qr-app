@@ -53,3 +53,33 @@ exports.getRecord = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch records" });
   }
 };
+
+exports.updateRecord = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, bloodType, allergies, emergencyContact } = req.body;
+
+    // Encrypt updated data
+    const encrypted = CryptoJS.AES.encrypt(
+      JSON.stringify({ name, bloodType, allergies, emergencyContact }),
+      process.env.SECRET_KEY
+    ).toString();
+
+    // Update record
+    const result = await pool.query(
+      `UPDATE user_data 
+       SET encrypted_data = $1, updated_at = NOW() 
+       WHERE id = $2 AND user_id = $3 
+       RETURNING *`,
+      [encrypted, id, req.user.id]
+    );
+
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    res.json({ id: result.rows[0].id });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update record" });
+  }
+};
