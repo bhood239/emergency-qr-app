@@ -1,7 +1,17 @@
 import { View, Button, StyleSheet, Text, TouchableOpacity } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
-export default function QRDisplay({ qrData, setShowQR }) {
+export default function QRDisplay({ route, navigation }) {
+  const { id, ...qrData } = route.params || {};
+
+  const onEditInformation = () => {
+    navigation.navigate("Profile");
+  };
+
+  if (!id) {
+    navigation.navigate("Profile");
+    return null;
+  }
   const qrValue = `http://localhost:3001/record/${qrData.id}`;
 
   return (
@@ -13,7 +23,7 @@ export default function QRDisplay({ qrData, setShowQR }) {
       <Text style={styles.instructions}>
         Scan this QR code to access your emergency information.
       </Text>
-      <TouchableOpacity style={styles.button} onPress={() => setShowQR(false)}>
+      <TouchableOpacity style={styles.button} onPress={onEditInformation}>
         <Text style={styles.buttonText}>Edit Information</Text>
       </TouchableOpacity>
     </View>

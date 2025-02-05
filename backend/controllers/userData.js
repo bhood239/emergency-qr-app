@@ -17,9 +17,10 @@ exports.createRecord = async (req, res) => {
       process.env.SECRET_KEY
     ).toString();
 
+    // Include user_id in the INSERT statement
     const result = await pool.query(
-      "INSERT INTO user_data (encrypted_data) VALUES ($1) RETURNING id",
-      [encrypted]
+      "INSERT INTO user_data (user_id, encrypted_data) VALUES ($1, $2) RETURNING id",
+      [req.user.id, encrypted]
     );
 
     res.json({ id: result.rows[0].id });
@@ -30,12 +31,14 @@ exports.createRecord = async (req, res) => {
 
 exports.getRecord = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await pool.query("SELECT * FROM user_data WHERE id = $1", [
-      id,
-    ]);
+    console.log("User ID:", req.user.id); // Debugging
+    const result = await pool.query(
+      `SELECT user_data.* FROM user_data JOIN users ON users.id = user_data.user_id WHERE user_data.user_id = $1 LIMIT 1`,
+      [req.user.id]
+    );
 
-    if (!result.rows[0]) return res.status(404).send("Not found");
+    if (!result.rows[0])
+      return res.status(404).json({ error: "No records found" });
 
     // Decrypt data
     const bytes = CryptoJS.AES.decrypt(
@@ -44,8 +47,9 @@ exports.getRecord = async (req, res) => {
     );
     const data = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
-    res.json(data);
+    res.json({ ...data, id: result.rows[0].id });
   } catch (err) {
-    res.status(500).send(err.message);
+    console.error("Error fetching records:", err);
+    res.status(500).json({ error: "Failed to fetch records" });
   }
 };

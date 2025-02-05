@@ -19,9 +19,17 @@ export default function LoginScreen({ navigation }) {
       );
 
       await AsyncStorage.setItem("token", response.data.token);
-      navigation.navigate("Profile");
+
+      const { data } = await axios.get("http://192.168.1.81:3001/api/records", {
+        headers: { Authorization: `Bearer ${response.data.token}` },
+      });
+      navigation.navigate(data ? "QRDisplay" : "Profile", data);
     } catch (err) {
-      alert("Login failed");
+      if (err.response?.status === 404) {
+        navigation.navigate("Profile");
+      } else {
+        alert("Login failed: " + (err.response?.data?.error || err.message));
+      }
     }
   };
 

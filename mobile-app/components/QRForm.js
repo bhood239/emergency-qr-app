@@ -3,6 +3,7 @@ import { View, TextInput, Button, StyleSheet, Text } from "react-native";
 import * as yup from "yup";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 
 const validationSchema = yup.object({
   name: yup.string().required("Name is required"),
@@ -14,7 +15,27 @@ const validationSchema = yup.object({
   }),
 });
 
-export default function QRForm({ setQrData, setShowQR }) {
+export default function QRForm({ navigation, route }) {
+  const [existingData, setExistingData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const { data } = await axios.get(
+          "http://192.168.1.81:3001/api/records",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (data) setExistingData(data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchData();
+  }, []);
+
   const handleSubmit = async (values) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -28,10 +49,9 @@ export default function QRForm({ setQrData, setShowQR }) {
           },
         }
       );
-      setQrData({ id: response.data.id, ...values });
-      setShowQR(true);
+      navigation.navigate("QRDisplay", { id: response.data.id, ...values });
     } catch (err) {
-      alert("Error saving data");
+      alert("Error saving data" + (err.response?.data?.error || err.message));
     }
   };
 
