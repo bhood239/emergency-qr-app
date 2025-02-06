@@ -82,3 +82,22 @@ exports.updateRecord = async (req, res) => {
     console.log(err);
   }
 };
+
+exports.deleteRecord = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      "DELETE FROM user_data WHERE id = $1 AND user_id = $2",
+      [id, req.user.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Record not found" });
+    }
+
+    res.json({ id });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete record" });
+    console.log(err);
+  }
+};
