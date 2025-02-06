@@ -78,6 +78,27 @@ export default function QRForm({ navigation, route }) {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const response = await axios.delete(
+        `http://localhost:3001/api/records/${recordId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
+      alert("Record deleted successfully");
+      navigation.navigate("Profile");
+    } catch (err) {
+      console.error("Error deleting record:", err);
+      alert("Failed to delete record");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Formik
@@ -165,6 +186,16 @@ export default function QRForm({ navigation, route }) {
                 color="#007AFF"
               />
             </View>
+
+            {existingData && (
+              <View style={styles.buttonContainer}>
+                <Button
+                  title="Delete My Record"
+                  onPress={handleDelete}
+                  color="#ff4444"
+                />
+              </View>
+            )}
           </View>
         )}
       </Formik>
